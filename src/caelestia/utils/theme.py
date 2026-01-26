@@ -5,7 +5,6 @@ from pathlib import Path
 import tempfile
 import shutil
 import fcntl
-import sys
 
 from caelestia.utils.colour import get_dynamic_colours
 from caelestia.utils.logging import log_exception
@@ -357,6 +356,17 @@ def apply_warp(colours: dict[str, str], mode: str) -> None:
 
 
 @log_exception
+def apply_kitty(colours: dict[str, str]) -> None:
+    template = gen_replace(colours, templates_dir / "kitty.conf", hash=True)
+    write_file(config_dir / "kitty/caelestia.conf", template)
+
+    subprocess.run(
+        ["kitty", "@", "set-colors", "--all", str(config_dir / "kitty/caelestia.conf")],
+        stderr=subprocess.DEVNULL,
+    )
+
+
+@log_exception
 def apply_cava(colours: dict[str, str]) -> None:
     template = gen_replace(colours, templates_dir / "cava.conf", hash=True)
     write_file(config_dir / "cava/config", template)
@@ -418,6 +428,8 @@ def apply_colours(colours: dict[str, str], mode: str) -> None:
                 apply_qt(colours, mode)
             if check("enableWarp"):
                 apply_warp(colours, mode)
+            if check("enableKitty"):
+                apply_kitty(colours)
             if check("enableCava"):
                 apply_cava(colours)
             apply_user_templates(colours, mode)
